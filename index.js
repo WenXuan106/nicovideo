@@ -2,7 +2,7 @@
  * Example baseHost at host is set up to respond with HTML
  * Replace url with the host you wish to send requests to
  */
-const baseHost = 'https://web.whatsapp.com/'
+const baseHost = 'https://www.nicovideo.jp/'
 
 /**
  * gatherResponse awaits and returns a response body with appropriate headers.
