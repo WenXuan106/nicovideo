@@ -1,44 +1,40 @@
 /**
- * Example baseHost at host is set up to respond with HTML
- * Replace url with the host you wish to send requests to
+ * Reverse proxy Worker: forwards all requests to baseHost.
+ * Note: baseHost has NO trailing slash, because pathname already starts with "/".
  */
-const baseHost = 'https://www.ytdwlr.lol/'
-
-/**
- * gatherResponse awaits and returns a response body with appropriate headers.
- * Use await gatherResponse(..) in an async function to get the response body
- * @param {Response} response
- */
-async function gatherResponse (response) {
-  const { headers } = response
-
-  return {
-    body: await response.body,
-    extra: {
-      status: response.status,
-      statusText: response.statusText,
-      headers: headers
-    }
-  }
-}
+const baseHost = 'https://www.ytdwlr.lol'
 
 async function handleRequest (request) {
   const requestUrl = new URL(request.url)
+  const targetUrl = baseHost + requestUrl.pathname + requestUrl.search
 
-  const proxyRequest = new Request(baseHost + requestUrl.pathname + requestUrl.search, {
+  const hasBody = request.method !== 'GET' && request.method !== 'HEAD'
+
+  const proxyRequest = new Request(targetUrl, {
     method: request.method,
     headers: request.headers,
-    cf: {
-      cacheTtl: 10,
-      cacheEverything: true
-    }
+    body: hasBody ? request.body : undefined,
+    redirect: 'manual', // don't silently follow redirects to the origin domain
+    // Only cache safe, idempotent requests
+    cf: request.method === 'GET'
+      ? { cacheTtl: 10, cacheEverything: true }
+      : undefined
   })
 
   const response = await fetch(proxyRequest)
-  const results = await gatherResponse(response)
-  return new Response(results.body, results.extra)
+
+  // Copy status, statusText, and headers; the copy has mutable headers
+  const proxied = new Response(response.body, response)
+
+  // Keep redirects on your own domain
+  const location = proxied.headers.get('Location')
+  if (location) {
+    proxied.headers.set('Location', location.replace(baseHost, requestUrl.origin))
+  }
+
+  return proxied
 }
 
 addEventListener('fetch', event => {
-  return event.respondWith(handleRequest(event.request))
+  event.respondWith(handleRequest(event.request))
 })
