@@ -2,7 +2,7 @@
  * Example baseHost at host is set up to respond with HTML
  * Replace url with the host you wish to send requests to
  */
-const baseHost = 'https://www.ytwdl.lol/'
+const baseHost = 'https://www.ytdwlr.lol/'
 
 /**
  * gatherResponse awaits and returns a response body with appropriate headers.
