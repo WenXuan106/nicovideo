@@ -2,7 +2,7 @@
  * Reverse proxy Worker: forwards all requests to baseHost.
  * Note: baseHost has NO trailing slash, because pathname already starts with "/".
  */
-const baseHost = 'https://createapp.pl/'
+const baseHost = 'https://flagaflaga.pl'
 
 async function handleRequest (request) {
   const requestUrl = new URL(request.url)
